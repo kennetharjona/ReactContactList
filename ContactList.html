@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Contact List</title>
+    <script src='https://unpkg.com/react@16.8.0/umd/react.production.min.js'></script>
+    <script src='https://unpkg.com/react-dom@16.8.0/umd/react-dom.production.min.js'></script>
+    <script src='https://unpkg.com/react-router-dom@5.0.0/umd/react-router-dom.min.js'></script>
+    <script src='https://unpkg.com/babel-standalone@6.26.0/babel.js'></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { HashRouter, Switch, Route, Link } = ReactRouterDOM;
+        const { useState, useEffect } = React;
+
+        const Home = () => (
+            <div className="text-center mt-5">
+                <h2>Home Page</h2>
+            </div>
+        );
+
+        const About = () => (
+            <div className="text-center mt-5">
+                <h2>About: Simple Contact List</h2>
+            </div>
+        );
+
+        const ContactList = () => {
+            const [contacts, setContacts] = useState([]);
+            const [name, setName] = useState("");
+            const [phone, setPhone] = useState("");
+            const [address, setAddress] = useState("");
+            const [notes, setNotes] = useState("");
+
+            // Load contacts from local storage on mount
+            useEffect(() => {
+                const savedContacts = JSON.parse(localStorage.getItem("contacts")) || [];
+                setContacts(savedContacts);
+            }, []);
+
+            // Save contacts to local storage whenever contacts change
+            useEffect(() => {
+                localStorage.setItem("contacts", JSON.stringify(contacts));
+            }, [contacts]);
+
+            const addContact = () => {
+                if (!name.trim() || !phone.trim() || !address.trim()) {
+                    alert("Please enter name, phone number, and address.");
+                    return;
+                }
+                if (contacts.some(contact => contact.phone === phone)) {
+                    alert("This phone number already exists.");
+                    return;
+                }
+                setContacts([...contacts, { name, phone, address, notes }]);
+                setName("");
+                setPhone("");
+                setAddress("");
+                setNotes("");
+            };
+
+            const deleteContact = (index) => {
+                const newContacts = contacts.filter((_, i) => i !== index);
+                setContacts(newContacts);
+            };
+
+            return (
+                <div className="container mt-4" style={{maxWidth: "680px"}}>
+                    <h2 className="mb-4">Contact List</h2>
+
+                    {/* Form Card */}
+                    <div className="card shadow-sm mb-4">
+                        <div className="card-body">
+                            <h5 className="card-title mb-3">Add New Contact</h5>
+                            <div className="row g-3">
+                                <div className="col-md-6">
+                                    <label className="form-label fw-semibold">Name <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label fw-semibold">Phone <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter phone"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label fw-semibold">Address <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter address"
+                                        value={address}
+                                        onChange={(e) => setAddress(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label fw-semibold">Notes</label>
+                                    <textarea
+                                        className="form-control"
+                                        placeholder="Enter notes"
+                                        rows="2"
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <button className="btn btn-primary w-100" onClick={addContact}>Add Contact</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contact List */}
+                    {contacts.length === 0 ? (
+                        <p className="text-muted text-center">No contacts yet. Add one above!</p>
+                    ) : (
+                        <div className="d-flex flex-column gap-3">
+                            {contacts.map((contact, index) => (
+                                <div key={index} className="card shadow-sm">
+                                    <div className="card-body">
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 className="mb-1">{contact.name}</h5>
+                                                <p className="mb-1 text-muted">📞 {contact.phone}</p>
+                                                {contact.address && (
+                                                    <p className="mb-1 text-muted">📍 {contact.address}</p>
+                                                )}
+                                                {contact.notes && (
+                                                    <p className="mb-0 text-muted">📝 {contact.notes}</p>
+                                                )}
+                                            </div>
+                                            <button
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => deleteContact(index)}
+                                            >Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => (
+            <HashRouter>
+                <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+                    <span className="navbar-brand fw-bold">React Contact List</span>
+                    <div className="d-flex gap-3">
+                        <Link className="nav-link text-white" to="/">Home</Link>
+                        <Link className="nav-link text-white" to="/about">About</Link>
+                        <Link className="nav-link text-white" to="/contacts">Contacts</Link>
+                    </div>
+                </nav>
+
+                <Switch>
+                    <Route exact path="/" component={Home} />
+                    <Route path="/about" component={About} />
+                    <Route path="/contacts" component={ContactList} />
+                </Switch>
+            </HashRouter>
+        );
+
+        ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+</body>
+</html>
